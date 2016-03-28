@@ -19,40 +19,53 @@ public class main_frame {
 	static JMenuBar jmb_main = null;
 	static JMenu jm_file = null;
 	static JMenu jm_edit = null;
+	static JMenu jm_help = null;
 	static JMenuItem jmi_file_open = null;
 	static JMenuItem jmi_edit_negative = null;
 	static JMenuItem jmi_edit_restore = null;
+	static JMenuItem jmi_edit_alpha_mix = null;
+	static JMenuItem jmi_help_about = null;
 	static JFileChooser jfc_open = null;
-	static BorderLayout blo = new BorderLayout();
+	//static BorderLayout blo = new BorderLayout();
 	//get screen size
 	static Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
 	//file filters
 	static FileNameExtensionFilter fnef_jpg = new FileNameExtensionFilter("JPG Images", "jpg","jpeg");
 	static FileNameExtensionFilter fnef_png = new FileNameExtensionFilter("PNG Images", "png");
 	static FileNameExtensionFilter fnef_bmp = new FileNameExtensionFilter("BMP Images", "bmp");
-	static BufferedImage bi = null;
-	static BufferedImage src = null;
+	public static BufferedImage bi = null;
+	public static BufferedImage src = null;
 	//init components
+	
 	static void init(){
 		//init
 		jf_main = new JFrame("PS");
 		jl_image = new JLabel();
 		jp_image = new JPanel();
 		jmb_main = new JMenuBar();
-		jm_file = new JMenu("file");
-		jm_edit = new JMenu("edit");
-		jmi_file_open = new JMenuItem("open...");
-		jmi_edit_negative = new JMenuItem("negative");
-		jmi_edit_restore = new JMenuItem("restore");
+		jm_file = new JMenu("File");
+		jm_edit = new JMenu("Edit");
+		jm_help = new JMenu("Help");
+		jmi_file_open = new JMenuItem("Open...");
+		jmi_edit_negative = new JMenuItem("Negative");
+		jmi_edit_restore = new JMenuItem("Restore");
+		jmi_edit_alpha_mix = new JMenuItem("Alpha Mix...");
+		jmi_help_about = new JMenuItem("About...");
+		//key stroke
+		jmi_file_open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,ActionEvent.CTRL_MASK));
+		jmi_edit_restore.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,ActionEvent.CTRL_MASK));
+		jmi_edit_negative.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,ActionEvent.CTRL_MASK));
 		//add
 		jf_main.add(jp_image,"Center");
 		jp_image.add(jl_image);
 		jmb_main.add(jm_file);
 		jmb_main.add(jm_edit);
+		jmb_main.add(jm_help);
 		jm_file.add(jmi_file_open);
 		jm_edit.add(jmi_edit_restore);
 		jm_edit.add(jmi_edit_negative);
-		
+		jm_edit.add(jmi_edit_alpha_mix);
+		jm_help.add(jmi_help_about);
 		//set main frame props 
 		jf_main.setJMenuBar(jmb_main);
 		jf_main.setSize((int)(screen_size.width*0.8),(int)(screen_size.height*0.8));
@@ -71,7 +84,6 @@ public class main_frame {
 		jmi_file_open.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				open_file();
 				restoreImage();
 			}	
@@ -80,42 +92,48 @@ public class main_frame {
 		jmi_edit_negative.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				if(bi!=null){
 					bi = ImageTools.image_negative(bi);
 					update();
 				}
 			}
 		});
+		//add a pic to exist one
+		jmi_edit_alpha_mix.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				new alpha_mix_frame();	
+			}
+		});
 		jmi_edit_restore.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				restoreImage();
 			}
 		});
-	}//end init()
-	static float min(float x, float y){
-		if(x>=y) return y;
-		else return x;
-	}
-	public static void restoreImage(){
-		//if(s_file!=null) {
-			try {
-				src = ImageIO.read(new FileInputStream(s_file));
-				initBi();
-				if(src.getHeight()>jf_main.getHeight()||src.getWidth()>jf_main.getWidth()) {
-					bi = ImageTools.image_zoom(bi,min((float)((float)jf_main.getHeight()/src.getHeight()),(float)((float)jf_main.getWidth()/src.getWidth())));
-					update();
-				}else jl_image.setIcon(new ImageIcon(src));
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				JOptionPane.showMessageDialog(null, "File Not Found", "Error", JOptionPane.ERROR_MESSAGE); 
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				JOptionPane.showMessageDialog(null, "Can't Load Image", "Error", JOptionPane.ERROR_MESSAGE); 
+		jf_main.addWindowListener(new WindowAdapter(){
+			public void windowActivated(WindowEvent e){
+				
 			}
-		//}
+		});
+	}//end init()
+
+	public static void setBi(BufferedImage bi) {
+		main_frame.bi = bi;
+		update();
+	}
+
+	public static void restoreImage(){
+		try {
+			src = ImageIO.read(new FileInputStream(s_file));
+			initBi();
+			if(src.getHeight()>jf_main.getHeight()||src.getWidth()>jf_main.getWidth()) {
+				bi = ImageTools.image_zoom(bi,jp_image.getWidth(),jp_image.getHeight(),0);
+				update();
+			}else jl_image.setIcon(new ImageIcon(src));
+		} catch (FileNotFoundException e1) {
+			JOptionPane.showMessageDialog(null, "File Not Found", "Error", JOptionPane.ERROR_MESSAGE); 
+		} catch (Exception e1) {
+		}
 	}
 	//init BufferedImage bi
 	static void initBi(){
@@ -146,7 +164,6 @@ public class main_frame {
 		try {
 		s_file =jfc_open.getSelectedFile().getPath();
 		} catch (Exception e1) {
-			JOptionPane.showMessageDialog(null, "File is not a valid image", "Error", JOptionPane.ERROR_MESSAGE); 
 		}
 	}
   
