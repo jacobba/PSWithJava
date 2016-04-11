@@ -73,6 +73,7 @@ public class main_frame {
 		jf_main.setLocationRelativeTo(null);
 		jf_main.setVisible(true);
 		jf_main. setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+		isEnable(false);
 		//
 		jf_main.addWindowListener(new WindowAdapter(){
 			public void windowClosing(WindowEvent e){
@@ -130,6 +131,7 @@ public class main_frame {
 				bi = ImageTools.image_zoom(bi,jp_image.getWidth(),jp_image.getHeight(),0);
 				update();
 			}else jl_image.setIcon(new ImageIcon(src));
+			isEnable(true);
 		} catch (FileNotFoundException e1) {
 			JOptionPane.showMessageDialog(null, "File Not Found", "Error", JOptionPane.ERROR_MESSAGE); 
 		} catch (Exception e1) {
@@ -167,7 +169,11 @@ public class main_frame {
 		}
 	}
   
-      
+     static void isEnable(boolean b){
+    	 jmi_edit_negative.setEnabled(b);
+    	 jmi_edit_alpha_mix.setEnabled(b);
+    	 jmi_edit_restore.setEnabled(b);
+     }
 	//main method
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub

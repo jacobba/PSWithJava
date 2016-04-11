@@ -1,5 +1,6 @@
 package com.kizzydnight.ps;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 public class ImageTools {
@@ -26,7 +27,7 @@ public class ImageTools {
 		}
     return bi;
 	}
-	static BufferedImage image_alpha_mix(BufferedImage bia,BufferedImage bib,float f){
+	static BufferedImage image_alpha_mix(BufferedImage bia,BufferedImage bib,float f,Color c,int valve){
 		BufferedImage output ;
 		int ra,rb,ga,gb,ba,bb,ro,go,bo = 0;
 		int ib,jb;
@@ -45,6 +46,14 @@ public class ImageTools {
 					rb = bia.getColorModel().getRed(datab);
 					gb = bia.getColorModel().getGreen(datab);
 					bb = bia.getColorModel().getBlue(datab);
+					if(c!=null&&(rb>=c.getRed()-valve)&&(rb<=c.getRed()+valve)&&
+						(gb>=c.getGreen()-valve)&&(gb<=c.getGreen()+valve)&&
+						(bb>=c.getBlue()-valve)&&(bb<=c.getBlue()+valve)){
+						int rgb = (ra*256+ga)*256+ba;
+						if(rgb>8388608) rgb = rgb-16777216;
+						output.setRGB(i, j, rgb);
+						continue;
+					} 
 					ro = Math.round(f*ra+(1-f)*rb);
 					go = Math.round(f*ga+(1-f)*gb);
 					bo = Math.round(f*ba+(1-f)*bb);
