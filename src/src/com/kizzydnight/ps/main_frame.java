@@ -3,7 +3,6 @@ package com.kizzydnight.ps;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -22,13 +21,11 @@ public class main_frame {
 	static JMenu jm_edit = null;
 	static JMenu jm_help = null;
 	static JMenuItem jmi_file_open = null;
-	static JMenuItem jmi_file_save = null;
 	static JMenuItem jmi_edit_negative = null;
 	static JMenuItem jmi_edit_restore = null;
 	static JMenuItem jmi_edit_alpha_mix = null;
 	static JMenuItem jmi_help_about = null;
 	static JFileChooser jfc_open = null;
-	static JFileChooser jfc_save = null;
 	//获取屏幕尺寸
 	static Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
 	//文件过滤器
@@ -48,7 +45,6 @@ public class main_frame {
 		jm_edit = new JMenu("编辑");
 		jm_help = new JMenu("帮助");
 		jmi_file_open = new JMenuItem("打开...");
-		jmi_file_save = new JMenuItem("保存...");
 		jmi_edit_negative = new JMenuItem("图像反转");
 		jmi_edit_restore = new JMenuItem("重置图像");
 		jmi_edit_alpha_mix = new JMenuItem("图像混合...");
@@ -65,7 +61,6 @@ public class main_frame {
 		jmb_main.add(jm_edit);
 		jmb_main.add(jm_help);
 		jm_file.add(jmi_file_open);
-		jm_file.add(jmi_file_save);
 		jm_edit.add(jmi_edit_restore);
 		jm_edit.add(jmi_edit_negative);
 		jm_edit.add(jmi_edit_alpha_mix);
@@ -87,16 +82,12 @@ public class main_frame {
 		});
 		//文件-打开 按钮监听器
 		jmi_file_open.addActionListener(new ActionListener(){
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				open_file();
 				restoreImage();
 			}	
 		}); 
-		jmi_file_save.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent arg0) {
-				save_file();	
-			}
-		});
 		//编辑-图像反转 按钮监听器
 		jmi_edit_negative.addActionListener(new ActionListener(){
 			@Override
@@ -171,24 +162,11 @@ public class main_frame {
 			JOptionPane.showMessageDialog(null, "该文件不是有效的图像文件", "错误", JOptionPane.ERROR_MESSAGE);
 		}
 	}
-	static void save_file(){
-		jfc_save = new JFileChooser();
-		jfc_open.setFileFilter(fnef_jpg);
-		jfc_save.showSaveDialog(jf_main);
-		File f = new File(jfc_save.getSelectedFile().getPath()+".jpg");
-		try {
-			ImageIO.write(bi, "jpg", f);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 	//设置菜单栏按钮是否可用
      static void isEnable(boolean b){
     	 jmi_edit_negative.setEnabled(b);
     	 jmi_edit_alpha_mix.setEnabled(b);
     	 jmi_edit_restore.setEnabled(b);
-    	 jmi_file_save.setEnabled(b);
      }
 	//主方法
 	public static void main(String[] args) {
