@@ -2,6 +2,7 @@ package com.kizzydnight.ps;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.math.BigDecimal;
 //图像工具类
 public class ImageTools {
 	//图像翻转方法，返回值：图像反转后的图像
@@ -40,7 +41,7 @@ public class ImageTools {
 	static BufferedImage image_alpha_mix(BufferedImage bia,BufferedImage bib,float f,Color c,int valve,int x,int y){
 		BufferedImage output ;
 		int ra,rb,ga,gb,ba,bb,ro,go,bo = 0;
-		int ib,jb;
+		//int ib,jb;
 		Object dataa,datab;
 		output = new BufferedImage( bia.getWidth(),bia.getHeight(),bia.getType());
 		//遍历顶层图像的像素点
@@ -108,6 +109,114 @@ public class ImageTools {
         return result;  
   
     }
+	//缩放-最近邻内插法
+	public static BufferedImage image_resize_NNI(BufferedImage im,float resizeTimes){
+		BufferedImage output = null;
+		int outputWidth = (int)(im.getWidth()*resizeTimes);
+		int outputHeight = (int)(im.getHeight()*resizeTimes);
+		int ra = 0;
+		int ga = 0;
+		int ba = 0;
+		Object data_im;
+		output = new BufferedImage(outputWidth,outputHeight,im.getType());
+		for (int i = 0;i<output.getWidth();i++){
+			for (int j = 0;j<output.getHeight();j++){
+					float resize_i = i/resizeTimes;
+					float resize_j = j/resizeTimes;
+					float u = resize_i-(int)resize_i;
+					float v = resize_j-(int)resize_j;
+					if(u<=0.5&&v<=0.5){
+						data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					if(u>0.5&&v<0.5){
+						if((int)resize_i+1>=im.getWidth())
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						else
+							data_im = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					if(u<0.5&&v>0.5){
+						if((int)resize_j+1>=im.getHeight())
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						else
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j+1, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					if(u>0.5&&v>0.5){
+						if(((int)resize_i+1>=im.getWidth())||((int)resize_j+1>=im.getHeight()))
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						else
+							data_im = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j+1, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					int rgb = (ra*256+ga)*256+ba;
+					output.setRGB(i, j, rgb);
+			}
+		}
+		return output;
+	}
+	//缩放-双线形内插法
+	public static BufferedImage image_resize_BI(BufferedImage im,float resizeTimes){
+		BufferedImage output = null;
+		int outputWidth = (int)(im.getWidth()*resizeTimes);
+		int outputHeight = (int)(im.getHeight()*resizeTimes);
+		float r = 0;float g = 0;float b = 0;
+		int ro = 0;int go = 0;int bo = 0;
+		int r_i_j = 0;int r_ip_j = 0;int r_i_jp = 0;int r_ip_jp = 0;
+		int g_i_j = 0;int g_ip_j = 0;int g_i_jp = 0;int g_ip_jp = 0;
+		int b_i_j = 0;int b_ip_j = 0;int b_i_jp = 0;int b_ip_jp = 0;
+		Object data_im;Object data_im_i_j;Object data_im_ip_j;Object data_im_i_jp;Object data_im_ip_jp;
+		output = new BufferedImage(outputWidth,outputHeight,im.getType());
+		for (int i = 0;i<output.getWidth();i++){
+			for (int j = 0;j<output.getHeight();j++){
+					float resize_i = i/resizeTimes;
+					float resize_j = j/resizeTimes;
+					float u = resize_i-(int)resize_i;
+					float v = resize_j-(int)resize_j;
+					if(((int)resize_i+1>=im.getWidth())||((int)resize_j+1>=im.getHeight())){
+						data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						ro = im.getColorModel().getRed(data_im);
+						go = im.getColorModel().getGreen(data_im);
+						bo = im.getColorModel().getBlue(data_im);
+					}else{
+						data_im_i_j = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						r_i_j = im.getColorModel().getRed(data_im_i_j);
+						g_i_j = im.getColorModel().getGreen(data_im_i_j);
+						b_i_j = im.getColorModel().getBlue(data_im_i_j);
+						data_im_ip_j = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j, null);
+						r_ip_j = im.getColorModel().getRed(data_im_ip_j);
+						g_ip_j = im.getColorModel().getGreen(data_im_ip_j);
+						b_ip_j = im.getColorModel().getBlue(data_im_ip_j);
+						data_im_i_jp = im.getRaster().getDataElements((int)resize_i, (int)resize_j+1, null);
+						r_i_jp = im.getColorModel().getRed(data_im_i_jp);
+						g_i_jp = im.getColorModel().getGreen(data_im_i_jp);
+						b_i_jp = im.getColorModel().getBlue(data_im_i_jp);
+						data_im_ip_jp = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j+1, null);
+						r_ip_jp = im.getColorModel().getRed(data_im_ip_jp);
+						g_ip_jp = im.getColorModel().getGreen(data_im_ip_jp);
+						b_ip_jp = im.getColorModel().getBlue(data_im_ip_jp);
+						r=(v*(u*r_ip_jp+(1-u)*r_ip_j)+(1-v)*(u*r_i_jp+(1-u)*r_i_j));
+						g=(v*(u*g_ip_jp+(1-u)*g_ip_j)+(1-v)*(u*g_i_jp+(1-u)*g_i_j));
+						b=(v*(u*b_ip_jp+(1-u)*b_ip_j)+(1-v)*(u*b_i_jp+(1-u)*b_i_j));
+						ro = Math.round(r);
+						go = Math.round(g);
+						bo = Math.round(b);
+					}
+					int rgb = (int)((ro*256+go)*256+bo);
+					output.setRGB(i, j, rgb);
+			}
+		}
+		return output;
+	}
 	//比较大小，返回最小值
 	static float min(float x, float y){
 		if(x>=y) return y;
