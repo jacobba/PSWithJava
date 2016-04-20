@@ -20,6 +20,7 @@ public class alpha_mix_frame {
 	static int moveX,moveY;
 	static JFrame jf_alpha_mix = null;
 	static JLabel jl_image = null;
+	static JScrollPane jsp_image = null;
 	static JLabel jl_text_alpha = null;
 	static JLabel jl_text_valve = null;
 	static JPanel jp_image = null;
@@ -36,7 +37,6 @@ public class alpha_mix_frame {
 	
 	private static void init_frame(final BufferedImage bi){
 		jf_alpha_mix = new JFrame("图像混合");
-		
 		jf_alpha_mix.setSize((int)(screen_size.width*0.5), (int)(screen_size.height*0.7));
 		jf_alpha_mix.setLayout(new BorderLayout());
 		jp_image = new JPanel();
@@ -44,6 +44,9 @@ public class alpha_mix_frame {
 		jl_text_valve = new JLabel("阈值:");
 		jl_text_alpha = new JLabel("透明度:");
 		jp_image.add(jl_image);
+		jsp_image = new JScrollPane(jp_image);
+		jsp_image.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		jsp_image.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		jp_props = new JPanel();
 		jb_confirm = new JButton("确认");
 		jb_selbgcolor = new JButton("选取背景色");
@@ -56,12 +59,12 @@ public class alpha_mix_frame {
 		jp_props.add(js_alpha);
 		jp_props.add(jb_selbgcolor);
 		jp_props.add(jb_confirm);
-		jf_alpha_mix.add(jp_image,"Center");
+		jf_alpha_mix.add(jsp_image,"Center");
 		jf_alpha_mix.add(jp_props,"South");
 		jf_alpha_mix.setLocationRelativeTo(main_frame.jf_main);
 		jf_alpha_mix.setVisible(true);
 		jf_alpha_mix.setResizable(false);
-		mix_origin = ImageTools.image_zoom(main_frame.bi, jf_alpha_mix.getWidth(), jf_alpha_mix.getHeight()-50, 0);
+		mix_origin = main_frame.bi;
 		output = ImageTools.image_alpha_mix(mix_origin, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY);
 		jl_image.setIcon(new ImageIcon(output));
 		JOptionPane.showMessageDialog(null, "用鼠标拖动图片到合适位置", "提示", JOptionPane.INFORMATION_MESSAGE); 
@@ -108,13 +111,13 @@ public class alpha_mix_frame {
 				});	
 			}
 		});
-		jf_alpha_mix.addMouseListener(new MouseAdapter(){
+		jp_image.addMouseListener(new MouseAdapter(){
 			public void mousePressed(MouseEvent arg0) {
 				mouse_startX = arg0.getX();
 				mouse_startY = arg0.getY();
 			}
 		});
-		jf_alpha_mix.addMouseMotionListener(new MouseMotionListener(){
+		jp_image.addMouseMotionListener(new MouseMotionListener(){
 			public void mouseDragged(MouseEvent arg0) {
 				mouse_endX = arg0.getX();
 				mouse_endY = arg0.getY();
