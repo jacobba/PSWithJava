@@ -204,14 +204,79 @@ public class ImageTools {
 						r_ip_jp = im.getColorModel().getRed(data_im_ip_jp);
 						g_ip_jp = im.getColorModel().getGreen(data_im_ip_jp);
 						b_ip_jp = im.getColorModel().getBlue(data_im_ip_jp);
-						r=(v*(u*r_ip_jp+(1-u)*r_ip_j)+(1-v)*(u*r_i_jp+(1-u)*r_i_j));
-						g=(v*(u*g_ip_jp+(1-u)*g_ip_j)+(1-v)*(u*g_i_jp+(1-u)*g_i_j));
-						b=(v*(u*b_ip_jp+(1-u)*b_ip_j)+(1-v)*(u*b_i_jp+(1-u)*b_i_j));
+//						r=(v*(u*r_ip_jp+(1-u)*r_ip_j)+(1-v)*(u*r_i_jp+(1-u)*r_i_j));
+//						g=(v*(u*g_ip_jp+(1-u)*g_ip_j)+(1-v)*(u*g_i_jp+(1-u)*g_i_j));
+//						b=(v*(u*b_ip_jp+(1-u)*b_ip_j)+(1-v)*(u*b_i_jp+(1-u)*b_i_j));
+				        r=(v*(u*r_ip_jp+(1-u)*r_i_jp)+(1-v)*(u*r_ip_j+(1-u)*r_i_j));
+				        g=(v*(u*g_ip_jp+(1-u)*g_i_jp)+(1-v)*(u*g_ip_j+(1-u)*g_i_j));
+				        b=(v*(u*b_ip_jp+(1-u)*b_i_jp)+(1-v)*(u*b_ip_j+(1-u)*b_i_j));
+						//对浮点数RGB取整
 						ro = Math.round(r);
 						go = Math.round(g);
 						bo = Math.round(b);
 					}
 					int rgb = (int)((ro*256+go)*256+bo);
+					output.setRGB(i, j, rgb);
+			}
+		}
+		return output;
+	}
+	static BufferedImage image_rotate_BBI(BufferedImage im,float f){
+		BufferedImage output;
+		int imWidth = im.getWidth();
+		int imHeight = im.getHeight();
+		float cosf = (float) Math.cos(f*Math.PI/180);
+		float sinf = (float) Math.sin(f*Math.PI/180);
+		output = new BufferedImage(1000,1000, BufferedImage.TYPE_INT_ARGB);
+		int ra = 0;
+		int ga = 0;
+		int ba = 0;
+		Object data_im;
+		for (int i = 0;i<output.getWidth();i++){
+			for (int j = 0;j<output.getHeight();j++){
+					float resize_i = (i-imWidth/2)*cosf + (j-imHeight/2)*sinf + imWidth/2;
+					float resize_j = - (i-imWidth/2)*sinf + (j-imHeight/2)*cosf + imHeight/2;
+					//System.out.println("i:"+resize_i+" j:"+resize_j);
+					if((resize_i<0)||(resize_i>=imWidth)||(resize_j<0)||(resize_j>=imHeight)){
+						output.setRGB(i, j, 255);
+						continue;
+					}
+					float u = resize_i-(int)resize_i;
+					float v = resize_j-(int)resize_j;
+					if(u<=0.5&&v<=0.5){
+						data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					if(u>0.5&&v<0.5){
+						if((int)resize_i+1>=im.getWidth())
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						else
+							data_im = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					if(u<0.5&&v>0.5){
+						if((int)resize_j+1>=im.getHeight())
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						else
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j+1, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					if(u>0.5&&v>0.5){
+						if(((int)resize_i+1>=im.getWidth())||((int)resize_j+1>=im.getHeight()))
+							data_im = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+						else
+							data_im = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j+1, null);
+						ra = im.getColorModel().getRed(data_im);
+						ga = im.getColorModel().getGreen(data_im);
+						ba = im.getColorModel().getBlue(data_im);
+					}
+					int rgb = (ra*256+ga)*256+ba;
 					output.setRGB(i, j, rgb);
 			}
 		}

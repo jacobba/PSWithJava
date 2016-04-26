@@ -32,6 +32,7 @@ public class main_frame {
 	static JMenuItem jmi_edit_alpha_mix = null;
 	static JMenuItem	jmi_edit_resize_NNI = null;
 	static JMenuItem jmi_edit_resize_BI = null;
+	static JMenuItem jmi_edit_rotate_NNI = null;
 	static JMenuItem jmi_help_about = null;
 	static JFileChooser jfc_open = null;
 	static JFileChooser jfc_save = null;
@@ -64,6 +65,7 @@ public class main_frame {
 		jmi_edit_alpha_mix = new JMenuItem("图像混合...");
 		jmi_edit_resize_NNI = new JMenuItem("最近邻内插法...");
 		jmi_edit_resize_BI = new JMenuItem("双线形内插法...");
+		jmi_edit_rotate_NNI = new JMenuItem("旋转NNI");
 		jmi_help_about = new JMenuItem("关于...");
 		//快捷键
 		jmi_file_open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,ActionEvent.CTRL_MASK));
@@ -87,6 +89,7 @@ public class main_frame {
 		jm_help.add(jmi_help_about);
 		jm_resize.add(jmi_edit_resize_NNI);
 		jm_resize.add(jmi_edit_resize_BI);
+		//jm_edit.add(jmi_edit_rotate_NNI);
 		//设置主窗口属性 
 		jf_main.setJMenuBar(jmb_main);
 		jf_main.setSize((int)(screen_size.width*0.8),(int)(screen_size.height*0.8));
@@ -116,7 +119,6 @@ public class main_frame {
 		});
 		//编辑-图像反转 按钮监听器
 		jmi_edit_negative.addActionListener(new ActionListener(){
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(bi!=null){
 					bi = ImageTools.image_negative(bi);
@@ -145,6 +147,12 @@ public class main_frame {
 				JTextField jta = new JTextField();
 				JOptionPane.showMessageDialog(null, jta, "请输入缩放系数", JOptionPane.PLAIN_MESSAGE); 
 				bi = ImageTools.image_resize_BI(bi, Float.parseFloat(jta.getText()));
+				update();
+			}
+		});
+		jmi_edit_rotate_NNI.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				bi = ImageTools.image_rotate_BBI(bi, 30);
 				update();
 			}
 		});
