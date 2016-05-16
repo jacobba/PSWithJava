@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import javax.swing.filechooser.*;
 
 public class main_frame {
@@ -19,14 +20,19 @@ public class main_frame {
     static private JMenu jm_edit = null;
     static private JMenu jm_help = null;
     static private JMenu jm_resize = null;
+    static private JMenu jm_rotate = null;
+    static private JMenu jm_transform = null;
     static private JMenuItem jmi_file_open = null;
     static private JMenuItem jmi_file_save = null;
     static private JMenuItem jmi_edit_negative = null;
     static private JMenuItem jmi_edit_restore = null;
     static private JMenuItem jmi_edit_alpha_mix = null;
-    static private JMenuItem	jmi_edit_resize_NNI = null;
+    static private JMenuItem jmi_edit_resize_NNI = null;
     static private JMenuItem jmi_edit_resize_BI = null;
     static private JMenuItem jmi_edit_rotate_BI = null;
+    static private JMenuItem jmi_edit_rotate_NNI = null;
+    static private JMenuItem jm_edit_transform_gray = null;
+    static private JMenuItem jm_edit_transform_gamma = null;
     static private JMenuItem jmi_help_about = null;
     static private JFileChooser jfc_open = null;
     static private JFileChooser jfc_save = null;
@@ -41,7 +47,7 @@ public class main_frame {
     //初始化
     static private void init(){
         //初始化组件
-        jf_main = new JFrame("PS");
+        jf_main = new JFrame("Photoshop");
         jl_image = new JLabel();
         jp_image = new JPanel();
         jsp_image = new JScrollPane(jp_image);
@@ -52,6 +58,8 @@ public class main_frame {
         jm_edit = new JMenu("编辑");
         jm_help = new JMenu("帮助");
         jm_resize = new JMenu("缩放");
+        jm_rotate = new JMenu("旋转");
+        jm_transform = new JMenu("变换");
         jmi_file_open = new JMenuItem("打开...");
         jmi_file_save = new JMenuItem("保存...");
         jmi_edit_negative = new JMenuItem("图像反转");
@@ -59,7 +67,10 @@ public class main_frame {
         jmi_edit_alpha_mix = new JMenuItem("图像混合...");
         jmi_edit_resize_NNI = new JMenuItem("最近邻内插法...");
         jmi_edit_resize_BI = new JMenuItem("双线形内插法...");
-        jmi_edit_rotate_BI = new JMenuItem("旋转NNI");
+        jmi_edit_rotate_BI = new JMenuItem("双线形内插法...");
+        jmi_edit_rotate_NNI = new JMenuItem("最近邻内插法...");
+        jm_edit_transform_gray = new JMenuItem("灰度拉伸");
+        jm_edit_transform_gamma = new JMenuItem("Gamma");
         jmi_help_about = new JMenuItem("关于...");
         //快捷键
         jmi_file_open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,InputEvent.CTRL_MASK));
@@ -76,14 +87,21 @@ public class main_frame {
         jmb_main.add(jm_help);
         jm_file.add(jmi_file_open);
         jm_file.add(jmi_file_save);
+        //edit menu
         jm_edit.add(jmi_edit_restore);
         jm_edit.add(jmi_edit_negative);
         jm_edit.add(jmi_edit_alpha_mix);
         jm_edit.add(jm_resize);
+        jm_edit.add(jm_rotate);
+        jm_edit.add(jm_transform);
+        //help menu
         jm_help.add(jmi_help_about);
         jm_resize.add(jmi_edit_resize_NNI);
         jm_resize.add(jmi_edit_resize_BI);
-        jm_edit.add(jmi_edit_rotate_BI);
+        jm_rotate.add(jmi_edit_rotate_NNI);
+        jm_rotate.add(jmi_edit_rotate_BI);
+        jm_transform.add(jm_edit_transform_gray);
+        jm_transform.add(jm_edit_transform_gamma);
         //设置主窗口属性
         jf_main.setJMenuBar(jmb_main);
         jf_main.setSize((int)(screen_size.width*0.8),(int)(screen_size.height*0.8));
@@ -101,39 +119,86 @@ public class main_frame {
         });
         //文件-打开 按钮监听器
         jmi_file_open.addActionListener((ActionEvent e)->{
-                open_file();
-                restoreImage();
+            open_file();
+            restoreImage();
         });
         jmi_file_save.addActionListener((ActionEvent e)->save_file());
         //编辑-图像反转 按钮监听器
         jmi_edit_negative.addActionListener((ActionEvent e)->{
-                if(bi!=null){
-                    bi = ImageTools.image_negative(bi);
-                    update();
-                }
+            if(bi!=null){
+                bi = ImageTools.image_negative(bi);
+                update();
+                jf_main.setTitle("Photoshop---图像翻转");
+            }
+
         });
         //编辑-图像混合 按钮监听器
         jmi_edit_alpha_mix.addActionListener((ActionEvent e)->new alpha_mix_frame());
         //编辑-缩放（最近邻内插法）... 按钮监听器
         jmi_edit_resize_NNI.addActionListener((ActionEvent e)->{
-                JTextField jta = new JTextField();
+            JTextField jta = new JTextField();
+            try {
                 JOptionPane.showMessageDialog(null, jta, "请输入缩放系数", JOptionPane.PLAIN_MESSAGE);
                 bi = ImageTools.image_resize_NNI(bi, Float.parseFloat(jta.getText()));
                 update();
+                jf_main.setTitle("Photoshop---图像缩放（最近邻内插法）");
+            }catch (Exception e1){
+                JOptionPane.showMessageDialog(null, "参数错误！", "错误", JOptionPane.ERROR_MESSAGE);
+            };
         });
         //编辑-缩放（双线形内插法）... 按钮监听器
         jmi_edit_resize_BI.addActionListener((ActionEvent e)->{
+            try {
                 JTextField jta = new JTextField();
                 JOptionPane.showMessageDialog(null, jta, "请输入缩放系数", JOptionPane.PLAIN_MESSAGE);
                 bi = ImageTools.image_resize_BI(bi, Float.parseFloat(jta.getText()));
                 update();
+                jf_main.setTitle("Photoshop---图像缩放（双线形内插法）");
+            }catch (Exception e1){
+                JOptionPane.showMessageDialog(null, "参数错误！", "错误", JOptionPane.ERROR_MESSAGE);
+            }
         });
+        //编辑-旋转（双线形内插法）... 按钮监听器
         jmi_edit_rotate_BI.addActionListener((ActionEvent e)->{
-                bi = ImageTools.image_rotate_BI(bi, 30);
+            try {
+                JTextField jta = new JTextField();
+                JOptionPane.showMessageDialog(null, jta, "请输入旋转角度", JOptionPane.PLAIN_MESSAGE);
+                bi = ImageTools.image_rotate_BI(bi, Float.parseFloat(jta.getText()));
                 update();
+                jf_main.setTitle("Photoshop---图像旋转（双线形内插法）");
+            }catch (Exception e1){
+                JOptionPane.showMessageDialog(null, "参数错误！", "错误", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        //编辑-旋转（最近邻内插法）... 按钮监听器
+        jmi_edit_rotate_NNI.addActionListener((ActionEvent e)->{
+            try {
+                JTextField jta = new JTextField();
+                JOptionPane.showMessageDialog(null, jta, "请输入旋转角度", JOptionPane.PLAIN_MESSAGE);
+                bi = ImageTools.image_rotate_NNI(bi, Float.parseFloat(jta.getText()));
+                update();
+                jf_main.setTitle("Photoshop---图像旋转（最近邻内插法）");
+            }catch (Exception e1){
+                JOptionPane.showMessageDialog(null, "参数错误！", "错误", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        jm_edit_transform_gray.addActionListener((ActionEvent e)->{
+            bi = ImageTools.Image_transform_gray(bi);
+            update();
+            jf_main.setTitle("Photoshop---图像灰度拉伸");
+        });
+        jm_edit_transform_gamma.addActionListener((ActionEvent e)->{
+            JSlider js = new JSlider(0,100,20);
+            JOptionPane.showMessageDialog(null, js, "请输入旋转角度", JOptionPane.PLAIN_MESSAGE);
+            js.addChangeListener((ChangeEvent e1)->{
+                System.out.print(js.getValue());
+                bi = ImageTools.Image_transform_gamma(bi,js.getValue());
+                update();
+            });
+            jf_main.setTitle("Photoshop---Gamma变换");
         });
         //编辑-重置图像 按钮监听器
-        jmi_edit_restore.addActionListener((ActionEvent e)->restoreImage());
+        jmi_edit_restore.addActionListener((ActionEvent e)->{restoreImage();jf_main.setTitle("Photoshop");});
     }//初始化结束
     //设置更新主窗口图像的方法
     static void setBi(BufferedImage bi) {
@@ -182,7 +247,7 @@ public class main_frame {
         try {
             s_file =jfc_open.getSelectedFile().getPath();
         } catch (Exception e1) {
-            JOptionPane.showMessageDialog(null, "该文件不是有效的图像文件", "错误", JOptionPane.ERROR_MESSAGE);
+            //JOptionPane.showMessageDialog(null, "该文件不是有效的图像文件", "错误", JOptionPane.ERROR_MESSAGE);
         }
     }
     static private void save_file(){
@@ -204,6 +269,8 @@ public class main_frame {
         jmi_file_save.setEnabled(b);
         jmi_edit_resize_NNI.setEnabled(b);
         jmi_edit_resize_BI.setEnabled(b);
+        jmi_edit_rotate_NNI.setEnabled(b);
+        jmi_edit_rotate_BI.setEnabled(b);
     }
     //主方法
     public static void main(String[] args) {

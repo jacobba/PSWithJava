@@ -14,7 +14,7 @@ class alpha_mix_frame {
     private static BufferedImage output = null;
     static private BufferedImage input = null;
     static private Color c = null;
-    static private int mouseX = 0,mouseY = 0,valve = 20;
+    static private int mouseX = 0,mouseY = 0;
     static private int mouse_startX,mouse_startY,mouse_endX,mouse_endY;
     static private int moveX,moveY;
     static private JFrame jf_alpha_mix = null;
@@ -78,7 +78,6 @@ class alpha_mix_frame {
                 moveX = 0;
                 mouseY = 0;
                 moveY = 0;
-                valve = 20;
                 c = null;
                 jf_alpha_mix.dispose();
         });

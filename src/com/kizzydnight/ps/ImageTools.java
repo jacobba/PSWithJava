@@ -96,19 +96,19 @@ public class ImageTools {
 	 * 3.两种方法均为等比缩放，根据Width和Height缩放，能自动计算出图像最大
 	 * 限度的填充长为Width宽为Height的矩形时，缩放的系数resizeTimes。
 	 * */
-    public static BufferedImage image_zoom(BufferedImage im,int Width,int Height,float resizeTimes) {
-        BufferedImage result = null;
-        int width = im.getWidth();
-        int height = im.getHeight();
-        if(Width != 0 && Height != 0)
-            resizeTimes = min((float)Width/im.getWidth(),(float)Height/im.getHeight());
-        int toWidth = (int) (width * resizeTimes);
-        int toHeight = (int) (height * resizeTimes);
-        result = new BufferedImage(toWidth, toHeight, im.getType());
-        result.getGraphics().drawImage(im.getScaledInstance(toWidth, toHeight, java.awt.Image.SCALE_SMOOTH), 0, 0, null);
-        return result;
-
-    }
+//    public static BufferedImage image_zoom(BufferedImage im,int Width,int Height,float resizeTimes) {
+//        BufferedImage result = null;
+//        int width = im.getWidth();
+//        int height = im.getHeight();
+//        if(Width != 0 && Height != 0)
+//            resizeTimes = min((float)Width/im.getWidth(),(float)Height/im.getHeight());
+//        int toWidth = (int) (width * resizeTimes);
+//        int toHeight = (int) (height * resizeTimes);
+//        result = new BufferedImage(toWidth, toHeight, im.getType());
+//        result.getGraphics().drawImage(im.getScaledInstance(toWidth, toHeight, java.awt.Image.SCALE_SMOOTH), 0, 0, null);
+//        return result;
+//
+//    }
     //缩放-最近邻内插法
     public static BufferedImage image_resize_NNI(BufferedImage im,float resizeTimes){
         BufferedImage output = null;
@@ -219,24 +219,27 @@ public class ImageTools {
         }
         return output;
     }
-    static BufferedImage image_rotate_BI(BufferedImage im,float f){
+    //旋转-最近临法
+    static BufferedImage image_rotate_NNI(BufferedImage im,float f){
+        f%=360;
         BufferedImage output;
         int imWidth = im.getWidth();
         int imHeight = im.getHeight();
-        float cosf = (float) Math.cos(f*Math.PI/180);
-        float sinf = (float) Math.sin(f*Math.PI/180);
-        output = new BufferedImage(1000,1000, BufferedImage.TYPE_INT_ARGB);
+        float cosf = Math.abs((float) Math.cos(f*Math.PI/180));
+        float sinf = Math.abs((float) Math.sin(f*Math.PI/180));
+        int outWidth = (int)(imWidth*cosf+imHeight*sinf);
+        int outHeight = (int)(imHeight*cosf+imWidth*sinf);
+        output = new BufferedImage(outWidth,outHeight, im.getType());
         int ra = 0;
         int ga = 0;
         int ba = 0;
         Object data_im;
         for (int i = 0;i<output.getWidth();i++){
             for (int j = 0;j<output.getHeight();j++){
-                float resize_i = (i-imWidth/2)*cosf + (j-imHeight/2)*sinf + imWidth/2;
-                float resize_j = - (i-imWidth/2)*sinf + (j-imHeight/2)*cosf + imHeight/2;
-                //System.out.println("i:"+resize_i+" j:"+resize_j);
+                float resize_i = (i-outWidth/2)*cosf+(j-outHeight/2)*sinf + imWidth/2;
+                float resize_j = (j-outHeight/2)*cosf+(-i+outWidth/2)*sinf + imHeight/2;
                 if((resize_i<0)||(resize_i>=imWidth)||(resize_j<0)||(resize_j>=imHeight)){
-                    output.setRGB(i, j, 255);
+                    output.setRGB(i, j, 16777215);
                     continue;
                 }
                 float u = resize_i-(int)resize_i;
@@ -280,6 +283,158 @@ public class ImageTools {
         }
         return output;
     }
+    //旋转-双线性法
+    static BufferedImage image_rotate_BI(BufferedImage im,float f){
+        f%=360;
+        BufferedImage output;
+        int imWidth = im.getWidth();
+        int imHeight = im.getHeight();
+        float cosf = Math.abs((float) Math.cos(f*Math.PI/180));
+        float sinf = Math.abs((float) Math.sin(f*Math.PI/180));
+        int outWidth = (int)(imWidth*cosf+imHeight*sinf);
+        int outHeight = (int)(imHeight*cosf+imWidth*sinf);
+        float r = 0;float g = 0;float b = 0;
+        int ro = 0;int go = 0;int bo = 0;
+        int r_i_j = 0;int r_ip_j = 0;int r_i_jp = 0;int r_ip_jp = 0;
+        int g_i_j = 0;int g_ip_j = 0;int g_i_jp = 0;int g_ip_jp = 0;
+        int b_i_j = 0;int b_ip_j = 0;int b_i_jp = 0;int b_ip_jp = 0;
+        Object data_im;Object data_im_i_j;Object data_im_ip_j;Object data_im_i_jp;Object data_im_ip_jp;
+        output = new BufferedImage(outWidth,outHeight, im.getType());
+        int ra = 0;
+        int ga = 0;
+        int ba = 0;
+        for (int i = 0;i<output.getWidth();i++){
+            for (int j = 0;j<output.getHeight();j++){
+                float resize_i = (i-outWidth/2)*cosf+(j-outHeight/2)*sinf + imWidth/2;
+                float resize_j = (j-outHeight/2)*cosf+(-i+outWidth/2)*sinf + imHeight/2;
+                float u = resize_i-(int)resize_i;
+                float v = resize_j-(int)resize_j;
+                try{
+                    data_im_i_j = im.getRaster().getDataElements((int)resize_i, (int)resize_j, null);
+                    r_i_j = im.getColorModel().getRed(data_im_i_j);
+                    g_i_j = im.getColorModel().getGreen(data_im_i_j);
+                    b_i_j = im.getColorModel().getBlue(data_im_i_j);
+                    data_im_ip_j = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j, null);
+                    r_ip_j = im.getColorModel().getRed(data_im_ip_j);
+                    g_ip_j = im.getColorModel().getGreen(data_im_ip_j);
+                    b_ip_j = im.getColorModel().getBlue(data_im_ip_j);
+                    data_im_i_jp = im.getRaster().getDataElements((int)resize_i, (int)resize_j+1, null);
+                    r_i_jp = im.getColorModel().getRed(data_im_i_jp);
+                    g_i_jp = im.getColorModel().getGreen(data_im_i_jp);
+                    b_i_jp = im.getColorModel().getBlue(data_im_i_jp);
+                    data_im_ip_jp = im.getRaster().getDataElements((int)resize_i+1, (int)resize_j+1, null);
+                    r_ip_jp = im.getColorModel().getRed(data_im_ip_jp);
+                    g_ip_jp = im.getColorModel().getGreen(data_im_ip_jp);
+                    b_ip_jp = im.getColorModel().getBlue(data_im_ip_jp);
+                    r=(v*(u*r_ip_jp+(1-u)*r_i_jp)+(1-v)*(u*r_ip_j+(1-u)*r_i_j));
+                    g=(v*(u*g_ip_jp+(1-u)*g_i_jp)+(1-v)*(u*g_ip_j+(1-u)*g_i_j));
+                    b=(v*(u*b_ip_jp+(1-u)*b_i_jp)+(1-v)*(u*b_ip_j+(1-u)*b_i_j));
+                    //对浮点数RGB取整
+                    ro = Math.round(r);
+                    go = Math.round(g);
+                    bo = Math.round(b);
+                }catch (Exception e){
+                    ro = 255;
+                    go = 255;
+                    bo = 255;
+                }
+                int rgb = (int)((ro*256+go)*256+bo);
+                output.setRGB(i, j, rgb);
+            }
+        }
+        return output;
+    }
+    static BufferedImage Image_transform_gray(BufferedImage im){
+        BufferedImage output = null;
+        output = new BufferedImage(im.getWidth(),im.getHeight(),im.getType());
+        int maxr = 0,maxg = 0,maxb =0,minr =255,ming=255,minb=255;
+        Object data;
+        for (int i = 0;i<im.getWidth();i++) {
+            for (int j = 0; j < im.getHeight(); j++) {
+                data = im.getRaster().getDataElements(i, j, null);
+                int r = im.getColorModel().getRed(data);
+                int g = im.getColorModel().getGreen(data);
+                int b = im.getColorModel().getBlue(data);
+                if(r>=maxr) maxr=r;
+                if(g>=maxg) maxg=g;
+                if(b>=maxb) maxb=b;
+                if(r<=minr) minr=r;
+                if(g<=ming) ming=g;
+                if(b<=minb) minb=b;
+            }
+        }
+        float ar =255f/(maxr-minr);
+        float br = -minr*255f/(maxr-minr);
+        float ag =255f/(maxg-ming);
+        float bg = -ming*255f/(maxg-ming);
+        float ab =255f/(maxb-minb);
+        float bb = -minb*255f/(maxb-minb);
+//        System.out.println("maxr="+maxr+",maxg="+maxg+",maxb="+maxb);
+//        System.out.println("minr="+minr+",ming="+ming+",minb="+minb);
+//        System.out.println("ar="+ar+",br="+br);
+//        System.out.println("ag="+ag+",bg="+bg);
+//        System.out.println("ab="+ab+",bb="+bb);
+        for (int i = 0;i<im.getWidth();i++) {
+            for (int j = 0; j < im.getHeight(); j++) {
+                data = im.getRaster().getDataElements(i, j, null);
+                int r = im.getColorModel().getRed(data);
+                int g = im.getColorModel().getGreen(data);
+                int b = im.getColorModel().getBlue(data);
+                int yr = (int)(ar*r+br);
+                int yg = (int)(ag*g+bg);
+                int yb = (int)(ab*b+bb);
+                int rgb = (yr*256 + yg)*256+yb;
+                //if(rgb>8388608)  rgb = rgb - 16777216;
+                output.setRGB(i, j, rgb);
+            }
+        }
+        return  output;
+    }
+    static BufferedImage Image_transform_gamma(BufferedImage im,int c){
+        BufferedImage output;
+        output = new BufferedImage(im.getWidth(),im.getHeight(),im.getType());
+        int ro = 0,go = 0,bo = 0;
+        for (int i = 0;i<im.getWidth();i++) {
+            for (int j = 0; j < im.getHeight(); j++) {
+                Object data = im.getRaster().getDataElements(i, j, null);
+                int r = im.getColorModel().getRed(data);
+                int g = im.getColorModel().getGreen(data);
+                int b = im.getColorModel().getBlue(data);
+                ro = (int)(c*Math.log10(1+r));
+                go = (int)(c*Math.log10(1+g));
+                bo = (int)(c*Math.log10(1+b));
+                int rgb = (ro*256 + go)*256+bo;
+                output.setRGB(i, j, rgb);
+            }
+        }
+        return output;
+    }
+//    static BufferedImage Image_transform_fuliye(BufferedImage im){
+//        BufferedImage output;
+//        int imWidth = im.getWidth();
+//        int imHeight = im.getHeight();
+//        int[][] fft_i = new int[imWidth][imHeight];
+//        int[][] fft_j = new int[imWidth][imHeight];
+//        Object data;
+//        for (int i = 0;i<im.getWidth();i++) {
+//            for (int j = 0; j < im.getHeight(); j++) {
+//                data = im.getRaster().getDataElements(i, j, null);
+//                int r = im.getColorModel().getRed(data);
+//                int g = im.getColorModel().getGreen(data);
+//                int b = im.getColorModel().getBlue(data);
+//                for (i = 0;i<im.getWidth();i++) {
+//                    for (j = 0; j < im.getHeight(); j++) {
+//                        Math.cos(-2*Math.PI*())
+//                    }
+//                }
+//
+//
+//
+//            }
+//        }
+//        output = new BufferedImage(imWidth,imHeight,im.getType());
+//        return output;
+//    }
     //比较大小，返回最小值
     static float min(float x, float y){
         if(x>=y) return y;
