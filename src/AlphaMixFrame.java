@@ -1,4 +1,3 @@
-package com.kizzydnight.ps;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -10,44 +9,34 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 
-class alpha_mix_frame {
+class AlphaMixFrame {
     private static BufferedImage output = null;
-    static private BufferedImage input = null;
     static private Color c = null;
     static private int mouseX = 0,mouseY = 0;
     static private int mouse_startX,mouse_startY,mouse_endX,mouse_endY;
     static private int moveX,moveY;
     static private JFrame jf_alpha_mix = null;
     static private JLabel jl_image = null;
-    static private JScrollPane jsp_image = null;
-    static private JLabel jl_text_alpha = null;
-    static private JLabel jl_text_valve = null;
-    static private JPanel jp_image = null;
-    static private JPanel jp_props = null;
-    static private JButton jb_confirm = null;
-    static private JButton jb_selbgcolor = null;
     static private JSlider js_alpha = null;
     static private JSlider js_valve = null;
-    static private JFileChooser jfc_open = null;
     static private BufferedImage mix_origin = null;
-    static private ChangeListener cl = null;
     static private Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
 
     private static void init_frame(final BufferedImage bi){
         jf_alpha_mix = new JFrame("图像混合");
-        jf_alpha_mix.setSize((int)(screen_size.width*0.5), (int)(screen_size.height*0.7));
+        jf_alpha_mix.setSize((int)(screen_size.width*0.8), (int)(screen_size.height*0.8));
         jf_alpha_mix.setLayout(new BorderLayout());
-        jp_image = new JPanel();
+        JPanel jp_image = new JPanel();
         jl_image = new JLabel();
-        jl_text_valve = new JLabel("阈值:");
-        jl_text_alpha = new JLabel("透明度:");
+        JLabel jl_text_valve = new JLabel("阈值:");
+        JLabel jl_text_alpha = new JLabel("透明度:");
         jp_image.add(jl_image);
-        jsp_image = new JScrollPane(jp_image);
+        JScrollPane jsp_image = new JScrollPane(jp_image);
         jsp_image.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         jsp_image.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        jp_props = new JPanel();
-        jb_confirm = new JButton("确认");
-        jb_selbgcolor = new JButton("选取背景色");
+        JPanel jp_props = new JPanel();
+        JButton jb_confirm = new JButton("确认");
+        JButton jb_selbgcolor = new JButton("选取背景色");
         js_alpha = new JSlider(0,100,0);
         js_valve = new JSlider(0,200,20);
         js_valve.setEnabled(false);
@@ -59,21 +48,21 @@ class alpha_mix_frame {
         jp_props.add(jb_confirm);
         jf_alpha_mix.add(jsp_image,"Center");
         jf_alpha_mix.add(jp_props,"South");
-        jf_alpha_mix.setLocationRelativeTo(main_frame.jf_main);
+        jf_alpha_mix.setLocationRelativeTo(MainFrame.jf_main);
         jf_alpha_mix.setVisible(true);
         jf_alpha_mix.setResizable(false);
-        mix_origin = main_frame.bi;
-        output = ImageTools.image_alpha_mix(mix_origin, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY);
+        mix_origin = MainFrame.bi;
+        output = new ImageAlphaMix(mix_origin, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY).getOutput();
         jl_image.setIcon(new ImageIcon(output));
         JOptionPane.showMessageDialog(null, "用鼠标拖动图片到合适位置", "提示", JOptionPane.INFORMATION_MESSAGE);
-        cl = (ChangeEvent e)->{
-                output = ImageTools.image_alpha_mix(mix_origin, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY);
-                jl_image.setIcon(new ImageIcon(output));
+        ChangeListener cl = (ChangeEvent e) -> {
+            output = new ImageAlphaMix(mix_origin, bi, (float) (js_alpha.getValue()) / 100, c, js_valve.getValue(), moveX, moveY).getOutput();
+            jl_image.setIcon(new ImageIcon(output));
         };
         js_alpha.addChangeListener(cl);
         js_valve.addChangeListener(cl);
         jb_confirm.addActionListener((ActionEvent e)->{
-                main_frame.setBi(ImageTools.image_alpha_mix(main_frame.bi, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY));
+                MainFrame.setBi(new ImageAlphaMix(MainFrame.bi, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY).getOutput());
                 mouseX = 0;
                 moveX = 0;
                 mouseY = 0;
@@ -114,7 +103,7 @@ class alpha_mix_frame {
                 mouse_endY = arg0.getY();
                 moveX = mouse_endX - mouse_startX;
                 moveY = mouse_endY - mouse_startY;
-                output = ImageTools.image_alpha_mix(mix_origin, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY);
+                output = new ImageAlphaMix(mix_origin, bi, (float)(js_alpha.getValue())/100,c,js_valve.getValue(),moveX,moveY).getOutput();
                 jl_image.setIcon(new ImageIcon(output));
             }
             public void mouseMoved(MouseEvent arg0) {
@@ -128,7 +117,7 @@ class alpha_mix_frame {
         FileNameExtensionFilter fnef_jpg = new FileNameExtensionFilter("JPG Images", "jpg","jpeg");
         FileNameExtensionFilter fnef_png = new FileNameExtensionFilter("PNG Images", "png");
         FileNameExtensionFilter fnef_bmp = new FileNameExtensionFilter("BMP Images", "bmp");
-        jfc_open = new JFileChooser();
+        JFileChooser jfc_open = new JFileChooser();
         jfc_open.setFileFilter(fnef_jpg);
         jfc_open.addChoosableFileFilter(fnef_png);
         jfc_open.addChoosableFileFilter(fnef_bmp);
@@ -137,19 +126,21 @@ class alpha_mix_frame {
         jfc_open.setMultiSelectionEnabled(false);
         jfc_open.setAcceptAllFileFilterUsed(false);
         try {
-            file_path =jfc_open.getSelectedFile().getPath();
+            file_path = jfc_open.getSelectedFile().getPath();
         } catch (Exception e1) {
             JOptionPane.showMessageDialog(null, "该文件不是有效的图像文件", "错误", JOptionPane.ERROR_MESSAGE);
         }
         try {
+            assert file_path != null;
             bi = ImageIO.read(new FileInputStream(file_path));
         }  catch (Exception e) {
             return null;
         }
         return bi;
     }
-    alpha_mix_frame(){
-        input = init_chooser();
-        if(input!=null) init_frame(input);
+    AlphaMixFrame(){
+        Tools.ChangeUI();
+        BufferedImage input = init_chooser();
+        if(input !=null) init_frame(input);
     }
 }
