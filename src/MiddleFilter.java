@@ -4,7 +4,7 @@ import java.util.Arrays;
 /**
  * Created by JacobLu on 6/20/16.
  */
-public class MiddleFilter {
+class MiddleFilter {
     BufferedImage output;
     MiddleFilter(BufferedImage bi){
         output = new BufferedImage(bi.getWidth(),bi.getHeight(),bi.getType());

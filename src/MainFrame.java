@@ -3,6 +3,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.*;
@@ -30,8 +32,6 @@ class MainFrame {
     static private JMenuItem jmi_filter_weighted_meanfilter = null;
     static private JMenuItem jmi_filter_edge_detection = null;
     static private JMenuItem jmi_filter_laplacian_filter = null;
-    //static private JMenuItem jmi_help_about = null;
-    static private JFileChooser jfc_open = null;
     //获取屏幕尺寸
     private static Dimension screen_size = Toolkit.getDefaultToolkit().getScreenSize();
     //文件过滤器
@@ -77,8 +77,8 @@ class MainFrame {
         jmi_filter_weighted_meanfilter = new JMenuItem("加权均值滤波器");
         jmi_filter_laplacian_filter = new JMenuItem("拉普拉斯滤波器");
         jmi_filter_edge_detection = new JMenuItem("图像边缘提取");
-
-        //jmi_help_about = new JMenuItem("关于...");
+        JMenuItem jmi_help_github = new JMenuItem("此程序的Github主页...");
+        JMenuItem jmi_help_about = new JMenuItem("关于...");
         //快捷键
         jmi_file_open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,InputEvent.CTRL_MASK));
         jmi_edit_restore.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,InputEvent.CTRL_MASK));
@@ -116,7 +116,8 @@ class MainFrame {
         jm_filter.add(jmi_filter_edge_detection);
         jm_filter.add(jmi_filter_laplacian_filter);
         //help menu
-        //jm_help.add(jmi_help_about);
+        jm_help.add(jmi_help_about);
+        jm_help.add(jmi_help_github);
         jm_resize.add(jmi_resize_NNI);
         jm_resize.add(jmi_resize_BI);
         jm_rotate.add(jmi_rotate_NNI);
@@ -132,7 +133,15 @@ class MainFrame {
         jf_main.setVisible(true);
         jf_main. setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         isEnable(false);
-
+        jmi_help_about.addActionListener((ActionEvent e)->new AboutMe());
+        jmi_help_github.addActionListener((ActionEvent e)->{
+            try {
+                URI uri = new URI("https://github.com/jacobba/PSWithJava");
+                Desktop.getDesktop().browse(uri);
+            } catch (URISyntaxException | IOException e1) {
+                e1.printStackTrace();
+            }
+        });
         //主窗口关闭监听器
         jf_main.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e){
@@ -147,7 +156,7 @@ class MainFrame {
             restoreImage();
         });
         //文件-保存 按钮监听器
-        jmi_file_save.addActionListener((ActionEvent e)->new Tools().save_file(bi,jf_main));
+        jmi_file_save.addActionListener((ActionEvent e)-> Tools.save_file(bi,jf_main));
 
         //编辑-图像反转 按钮监听器
         jmi_edit_negative.addActionListener((ActionEvent e)->{
@@ -315,7 +324,7 @@ class MainFrame {
 
     //文件选择器
     static private void open_file(){
-        jfc_open = new JFileChooser();
+        JFileChooser jfc_open = new JFileChooser();
         jfc_open.setFileFilter(fnef_jpg);
         jfc_open.addChoosableFileFilter(fnef_png);
         jfc_open.addChoosableFileFilter(fnef_bmp);
@@ -324,7 +333,7 @@ class MainFrame {
         jfc_open.setMultiSelectionEnabled(false);
         jfc_open.setAcceptAllFileFilterUsed(false);
         try {
-            s_file =jfc_open.getSelectedFile().getPath();
+            s_file = jfc_open.getSelectedFile().getPath();
         } catch (Exception e1) {
             JOptionPane.showMessageDialog(null, "该文件不是有效的图像文件", "错误", JOptionPane.ERROR_MESSAGE);
         }

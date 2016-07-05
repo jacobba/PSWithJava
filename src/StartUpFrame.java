@@ -19,7 +19,7 @@ class StartUpFrame {
     private static JProgressBar jpb_start;
     private static int x = Tools.screen_y;
     private static int y = (int) (Tools.screen_y*0.5625);
-    private static int speed = 5;
+    private static int speed = 15;
     private static Timer timer;
     private static void init(){
         try {

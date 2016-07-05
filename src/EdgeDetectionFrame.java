@@ -32,7 +32,7 @@ class EdgeDetectionFrame {
         jf_edge_detection = new JFrame("边缘提取");
         jp_bot = new JPanel();
 
-        jb_confirm = new JButton("确定");
+        jb_confirm = new JButton("保存");
         jcb_mathods = new JComboBox();
         jcb_mathods.addItem("Sobel算子");
         jcb_mathods.addItem("Prewitt算子");

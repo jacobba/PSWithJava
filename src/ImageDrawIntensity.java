@@ -154,28 +154,7 @@ class ImageDrawIntensity {
         }
         return equalizationed_RGB;
     }
-//    public BufferedImage histogram_equalization_HSV(){
-//        BufferedImage equalizationed_HSV = new BufferedImage(bi.getWidth(),bi.getHeight(),bi.getType());
-//        for (int i = 0; i < bi.getWidth(); i++) {
-//            for (int j = 0; j < bi.getHeight(); j++) {
-//                Object data = bi.getRaster().getDataElements(i, j, null);
-//                int r = bi.getColorModel().getRed(data);
-//                int g = bi.getColorModel().getGreen(data);
-//                int b = bi.getColorModel().getBlue(data);
-//                float I = (r+g+b)/3f;
-//                float H = 0;
-//                float W = (float) Math.acos( (2*r-g-b) / ( 2*Math.sqrt((r-g)*(r-g) + (r-b)*(g-b))));
-//                if(b>g) H = (float) (2*Math.PI - W);
-//                else H = W;
-//                int min = Integer.MAX_VALUE;
-//                if(r>g) min = g;else min = r;
-//                if(min>b) min = b;
-//                float S = 1 - (3*min) / (r+g+b);
-//            }
-//        }
-//
-//        return equalizationed_HSV;
-//    }
+
 
     BufferedImage getBlue_output() {
         return blue_output;
