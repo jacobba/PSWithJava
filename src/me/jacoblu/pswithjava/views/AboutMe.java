@@ -1,3 +1,5 @@
+package me.jacoblu.pswithjava.views;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -8,8 +10,8 @@ import java.io.IOException;
 /**
  * Created by JacobLu on 7/5/16.
  */
-class AboutMe {
-    AboutMe(){
+public class AboutMe {
+    public AboutMe(){
         JFrame jf_aboutme = new JFrame("关于我");
         JTextArea jta = new JTextArea();
         jta.setEditable(false);
@@ -28,7 +30,7 @@ class AboutMe {
 
         jb_github.addActionListener((ActionEvent e)->{
             try {
-                URI uri = new URI("https://github.com/jacobba");
+                URI uri = new URI("https://github.com/zmlu");
                 Desktop.getDesktop().browse(uri);
             } catch (URISyntaxException e1) {
                 e1.printStackTrace();
